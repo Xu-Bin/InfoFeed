@@ -1,4 +1,3 @@
-
 package com.xubin.infofeed;
 
 import android.app.Activity;
