@@ -1,4 +1,3 @@
-//Master
 
 package com.xubin.infofeed;
 
