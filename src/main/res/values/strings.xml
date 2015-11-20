@@ -3,4 +3,6 @@
 <resources>
 	<string name="app_name">InfoFeed</string>
 	<string name="slogan">InfoFeed</string>
+	<string name="feed_button">Feed</string>
+	<string name="conn_receiver_name">ConnStatusRecevier</string>
 </resources>
