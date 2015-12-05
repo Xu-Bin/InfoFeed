@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:support="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_settings"
+        android:icon="@drawable/ic_action_settings"
+        android:title="@string/menu_settings"
+        support:showAsAction="ifRoom">
+
+        <menu>
+            <item android:id="@+id/submenu_weibo"
+                  android:icon="@drawable/ic_submenu_weibo"
+                  android:title="@string/submenu_weibo"/>
+        </menu>
+
+    </item>
+
+</menu>

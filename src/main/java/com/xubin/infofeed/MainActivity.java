@@ -10,6 +10,10 @@ import android.util.TypedValue;
 import android.os.Bundle;
 import android.util.Log;
 import android.content.Context;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MenuInflater;
+import android.support.v7.app.ActionBarActivity;
 
 import android.widget.Toast;
 import android.view.View;
@@ -20,7 +24,7 @@ import com.sina.weibo.sdk.auth.WeiboAuthListener;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.sina.weibo.sdk.exception.WeiboException;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends ActionBarActivity {
 
     public static final String TAG = "InfoFeed";
 
@@ -55,6 +59,23 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.submenu_weibo:
+                Toast.makeText(MainActivity.this, "Click weibo now", Toast.LENGTH_LONG).show();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     protected void drawConnFragment(){

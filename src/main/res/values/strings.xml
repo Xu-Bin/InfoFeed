@@ -3,6 +3,8 @@
 <resources>
 	<string name="app_name">InfoFeed</string>
 	<string name="slogan">InfoFeed</string>
+	<string name="menu_settings">Setting</string>
+	<string name="submenu_weibo">Weibo</string>
 	<string name="feed_button">Feed</string>
 	<string name="conn_receiver_name">ConnStatusRecevier</string>
 	<string name="obtain_token_via_sso_all_in_one">SSO 授权（ALL IN ONE）</string>
