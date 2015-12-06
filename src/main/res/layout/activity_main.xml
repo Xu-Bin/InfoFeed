@@ -25,12 +25,4 @@
             android:text="@string/feed_button" />
     </RelativeLayout>
 
-    <Button
-        android:id="@+id/obtain_token_via_signature"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="left|center_vertical"
-        android:text="@string/obtain_token_via_sso_all_in_one" />
-
 </LinearLayout>

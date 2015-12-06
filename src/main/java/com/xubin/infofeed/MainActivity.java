@@ -48,17 +48,6 @@ public class MainActivity extends ActionBarActivity {
 
         drawConnFragment();
 
-        /* ADD Weibo SSO login */
-        mAuthInfo = new AuthInfo(this, Constants.APP_KEY, Constants.REDIRECT_URL, Constants.SCOPE);
-        mSsoHandler = new SsoHandler(MainActivity.this, mAuthInfo);
-
-        findViewById(R.id.obtain_token_via_signature).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mSsoHandler.authorize(new AuthListener());
-            }
-        });
-
     }
 
     @Override
@@ -71,6 +60,11 @@ public class MainActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.submenu_weibo:
+                mAuthInfo = new AuthInfo(this, Constants.APP_KEY, Constants.REDIRECT_URL, Constants.SCOPE);
+                mSsoHandler = new SsoHandler(MainActivity.this, mAuthInfo);
+
+                mSsoHandler.authorize(new AuthListener());
+
                 Toast.makeText(MainActivity.this, "Click weibo now", Toast.LENGTH_LONG).show();
                 return true;
         }
@@ -143,17 +137,17 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // SSO 授权回调
-        // 重要：发起 SSO 登陆的 Activity 必须重写 onActivityResults
-        if (mSsoHandler != null) {
-            mSsoHandler.authorizeCallBack(requestCode, resultCode, data);
-        }
-
-    }
+    // @Override
+    // protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    //     super.onActivityResult(requestCode, resultCode, data);
+    //
+    //     // SSO 授权回调
+    //     // 重要：发起 SSO 登陆的 Activity 必须重写 onActivityResults
+    //     if (mSsoHandler != null) {
+    //         mSsoHandler.authorizeCallBack(requestCode, resultCode, data);
+    //     }
+    //
+    // }
 
 
     class AuthListener implements WeiboAuthListener {
@@ -168,7 +162,7 @@ public class MainActivity extends ActionBarActivity {
             if (mAccessToken.isSessionValid()) {
                 // 显示 Token
                 // updateTokenView(false);
-                //
+                Toast.makeText(MainActivity.this, "Haha...", Toast.LENGTH_LONG).show();
                 // // 保存 Token 到 SharedPreferences
                 // AccessTokenKeeper.writeAccessToken(WBAuthActivity.this, mAccessToken);
                 // Toast.makeText(WBAuthActivity.this,
