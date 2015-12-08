@@ -1,30 +1,41 @@
 package com.xubin.infofeed;
 
+import java.util.ArrayList;
+
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
+
+import android.content.Context;
+import android.content.Intent;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.content.Intent;
-import android.support.v4.app.FragmentActivity;
+
 import android.util.TypedValue;
-import android.os.Bundle;
 import android.util.Log;
-import android.content.Context;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuInflater;
-import android.support.v7.app.ActionBarActivity;
-
-import android.widget.Toast;
 import android.view.View;
 import android.view.View.OnClickListener;
+
+import android.widget.TextView;
+import android.widget.ListView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Toast;
+
+import android.text.TextUtils;
+import android.os.Bundle;
+
 import com.sina.weibo.sdk.auth.AuthInfo;
 import com.sina.weibo.sdk.auth.sso.SsoHandler;
 import com.sina.weibo.sdk.auth.WeiboAuthListener;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.sina.weibo.sdk.exception.WeiboException;
 import com.sina.weibo.sdk.openapi.StatusesAPI;
-import android.text.TextUtils;
 import com.sina.weibo.sdk.openapi.models.Status;
 import com.sina.weibo.sdk.openapi.models.StatusList;
 import com.sina.weibo.sdk.openapi.models.ErrorInfo;
@@ -48,6 +59,13 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        /* ADD lISTERNER FOR FEED BUTTON */
+        final Button feedButton = (Button)findViewById(R.id.feed_button);
+        feedButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                weiboUpdate();
+            }
+        });
 
         filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         this.registerReceiver(receiver, filter);
@@ -82,6 +100,66 @@ public class MainActivity extends ActionBarActivity {
         SimpleTextFragment connFragment = (SimpleTextFragment)getSupportFragmentManager().findFragmentById(R.id.test_conn_fragment);
         connFragment.setText(getNetworkConnectionType());
         connFragment.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16.0f);
+    }
+
+    protected void weiboUpdate(){
+        Oauth2AccessToken wbAccessToken = AccessTokenKeeper.readWeiboAccessToken(MainActivity.this);
+
+        String date = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(
+                new java.util.Date(wbAccessToken.getExpiresTime()));
+        Log.i(TAG, date);
+        // 对statusAPI实例化
+        StatusesAPI wbStatusesAPI = new StatusesAPI(MainActivity.this, Constants.APP_KEY, wbAccessToken);
+
+        RequestListener mListener = new RequestListener() {
+            @Override
+            public void onComplete(String response) {
+                if (!TextUtils.isEmpty(response)) {
+                    Log.i(TAG, response);
+                    if (response.startsWith("{\"statuses\"")) {
+                        // 调用 StatusList#parse 解析字符串成微博列表对象
+                        StatusList statuses = StatusList.parse(response);
+                        if (statuses != null && statuses.total_number > 0) {
+
+                            ArrayList<String>  al = new ArrayList<String>();
+                            for (Status s : statuses.statusList){
+                                al.add(s.text);
+                            }
+
+                            ListView weibolv = (ListView)findViewById(R.id.list);
+                            ArrayAdapter<String> weiboaa = new ArrayAdapter<String> (MainActivity.this, android.R.layout.simple_list_item_1, al);
+                            weibolv.setAdapter(weiboaa);
+
+
+
+                            Toast.makeText(MainActivity.this,
+                                    "获取微博信息流成功, 条数: " + statuses.statusList.size(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    } else if (response.startsWith("{\"created_at\"")) {
+                        // 调用 Status#parse 解析字符串成微博对象
+                        Status status = Status.parse(response);
+                        Toast.makeText(MainActivity.this,
+                                "发送一送微博成功, id = " + status.id,
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, response, Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onWeiboException(WeiboException e) {
+                Log.e(TAG, e.getMessage());
+                ErrorInfo info = ErrorInfo.parse(e.getMessage());
+                Toast.makeText(MainActivity.this, info.toString(), Toast.LENGTH_LONG).show();
+            }
+        };
+
+        //if (wbAccessToken != null && wbAccessToken.isSessionValid()){
+        if (wbAccessToken != null){
+            wbStatusesAPI.friendsTimeline(0L, 0L, 10, 1, false, 0, false, mListener);
+        }
     }
 
     @Override
@@ -132,7 +210,7 @@ public class MainActivity extends ActionBarActivity {
         return connInfo;
     }
 
-    public class ConnStatusChangeReceiver extends BroadcastReceiver {
+    class ConnStatusChangeReceiver extends BroadcastReceiver {
         public static final String TAG = "ConnStatusChangeReceiver";
 
         @Override
@@ -152,50 +230,6 @@ public class MainActivity extends ActionBarActivity {
         if (mSsoHandler != null) {
             mSsoHandler.authorizeCallBack(requestCode, resultCode, data);
         }
-
-        Oauth2AccessToken wbAccessToken = AccessTokenKeeper.readWeiboAccessToken(this);
-        // 对statusAPI实例化
-        StatusesAPI wbStatusesAPI = new StatusesAPI(this, Constants.APP_KEY, mAccessToken);
-
-        RequestListener mListener = new RequestListener() {
-            @Override
-            public void onComplete(String response) {
-                if (!TextUtils.isEmpty(response)) {
-                    Log.i(TAG, response);
-                    if (response.startsWith("{\"statuses\"")) {
-                        // 调用 StatusList#parse 解析字符串成微博列表对象
-                        StatusList statuses = StatusList.parse(response);
-                        if (statuses != null && statuses.total_number > 0) {
-                            Toast.makeText(MainActivity.this,
-                                    "获取微博信息流成功, 条数: " + statuses.statusList.size(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    } else if (response.startsWith("{\"created_at\"")) {
-                        // 调用 Status#parse 解析字符串成微博对象
-                        Status status = Status.parse(response);
-                        Toast.makeText(MainActivity.this,
-                                "发送一送微博成功, id = " + status.id,
-                                Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, response, Toast.LENGTH_LONG).show();
-                    }
-                }
-            }
-
-            @Override
-            public void onWeiboException(WeiboException e) {
-                Log.e(TAG, e.getMessage());
-                ErrorInfo info = ErrorInfo.parse(e.getMessage());
-                Toast.makeText(MainActivity.this, info.toString(), Toast.LENGTH_LONG).show();
-            }
-        };
-
-        if (wbAccessToken != null && wbAccessToken.isSessionValid()){
-            wbStatusesAPI.friendsTimeline(0L, 0L, 10, 1, false, 0, false, mListener);
-        }
-
-
-
     }
 
     class AuthListener implements WeiboAuthListener {
