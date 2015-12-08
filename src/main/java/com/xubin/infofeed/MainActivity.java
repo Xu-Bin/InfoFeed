@@ -23,6 +23,12 @@ import com.sina.weibo.sdk.auth.sso.SsoHandler;
 import com.sina.weibo.sdk.auth.WeiboAuthListener;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.sina.weibo.sdk.exception.WeiboException;
+import com.sina.weibo.sdk.openapi.StatusesAPI;
+import android.text.TextUtils;
+import com.sina.weibo.sdk.openapi.models.Status;
+import com.sina.weibo.sdk.openapi.models.StatusList;
+import com.sina.weibo.sdk.openapi.models.ErrorInfo;
+import com.sina.weibo.sdk.net.RequestListener;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -137,62 +143,95 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-    // @Override
-    // protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    //     super.onActivityResult(requestCode, resultCode, data);
-    //
-    //     // SSO 授权回调
-    //     // 重要：发起 SSO 登陆的 Activity 必须重写 onActivityResults
-    //     if (mSsoHandler != null) {
-    //         mSsoHandler.authorizeCallBack(requestCode, resultCode, data);
-    //     }
-    //
-    // }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        // SSO 授权回调
+        // 重要：发起 SSO 登陆的 Activity 必须重写 onActivityResults
+        if (mSsoHandler != null) {
+            mSsoHandler.authorizeCallBack(requestCode, resultCode, data);
+        }
+
+        Oauth2AccessToken wbAccessToken = AccessTokenKeeper.readWeiboAccessToken(this);
+        // 对statusAPI实例化
+        StatusesAPI wbStatusesAPI = new StatusesAPI(this, Constants.APP_KEY, mAccessToken);
+
+        RequestListener mListener = new RequestListener() {
+            @Override
+            public void onComplete(String response) {
+                if (!TextUtils.isEmpty(response)) {
+                    Log.i(TAG, response);
+                    if (response.startsWith("{\"statuses\"")) {
+                        // 调用 StatusList#parse 解析字符串成微博列表对象
+                        StatusList statuses = StatusList.parse(response);
+                        if (statuses != null && statuses.total_number > 0) {
+                            Toast.makeText(MainActivity.this,
+                                    "获取微博信息流成功, 条数: " + statuses.statusList.size(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    } else if (response.startsWith("{\"created_at\"")) {
+                        // 调用 Status#parse 解析字符串成微博对象
+                        Status status = Status.parse(response);
+                        Toast.makeText(MainActivity.this,
+                                "发送一送微博成功, id = " + status.id,
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, response, Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onWeiboException(WeiboException e) {
+                Log.e(TAG, e.getMessage());
+                ErrorInfo info = ErrorInfo.parse(e.getMessage());
+                Toast.makeText(MainActivity.this, info.toString(), Toast.LENGTH_LONG).show();
+            }
+        };
+
+        if (wbAccessToken != null && wbAccessToken.isSessionValid()){
+            wbStatusesAPI.friendsTimeline(0L, 0L, 10, 1, false, 0, false, mListener);
+        }
+
+
+
+    }
 
     class AuthListener implements WeiboAuthListener {
 
         @Override
         public void onComplete(Bundle values) {
-            // 从 Bundle 中解析 Token
+
             mAccessToken = Oauth2AccessToken.parseAccessToken(values);
             String  phoneNum =  mAccessToken.getPhoneNum();
 
 
             if (mAccessToken.isSessionValid()) {
-                // 显示 Token
-                // updateTokenView(false);
+                AccessTokenKeeper.writeWeiboAccessToken(MainActivity.this, mAccessToken);
                 Toast.makeText(MainActivity.this, "Haha...", Toast.LENGTH_LONG).show();
-                // // 保存 Token 到 SharedPreferences
-                // AccessTokenKeeper.writeAccessToken(WBAuthActivity.this, mAccessToken);
-                // Toast.makeText(WBAuthActivity.this,
-                //         R.string.weibosdk_demo_toast_auth_success, Toast.LENGTH_SHORT).show();
+
             } else {
                 // 以下几种情况，您会收到 Code：
                 // 1. 当您未在平台上注册的应用程序的包名与签名时；
                 // 2. 当您注册的应用程序包名与签名不正确时；
                 // 3. 当您在平台上注册的包名和签名与您当前测试的应用的包名和签名不匹配时。
                 String code = values.getString("code");
-                // String message = getString(R.string.weibosdk_demo_toast_auth_failed);
-                // if (!TextUtils.isEmpty(code)) {
-                //     message = message + "\nObtained the code: " + code;
-                // }
                 Toast.makeText(MainActivity.this, "code....", Toast.LENGTH_LONG).show();
-                Log.i(TAG, "code = " + code);
             }
         }
 
         @Override
         public void onCancel() {
-            // Toast.makeText(WBAuthActivity.this,
-            //        R.string.weibosdk_demo_toast_auth_canceled, Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,
+                    "CANCEL" , Toast.LENGTH_LONG).show();
         }
 
         @Override
         public void onWeiboException(WeiboException e) {
-             Toast.makeText(MainActivity.this,
+            Toast.makeText(MainActivity.this,
                      "Auth exception : " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+            }
     }
 
 }
