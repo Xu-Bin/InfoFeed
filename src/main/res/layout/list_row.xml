@@ -8,19 +8,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-        <!-- ImageView android:id="@+id/row_avatar"
+        <ImageView android:id="@+id/row_avatar"
             android:layout_width="50dip"
             android:layout_height="50dip"
-            android:layout_alignParentLeft="true"/ -->
+            android:layout_alignParentLeft="true"/>
 
-        <TextView
+        <!-- <TextView
             android:id="@+id/row_avatar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:textColor="#343434"
             android:textSize="10dip"
-            android:layout_marginTop="1dip"/>
+            android:layout_marginTop="1dip"/> -->
 
         <TextView
             android:id="@+id/row_author"

@@ -1,11 +1,17 @@
 package com.xubin.infofeed;
 
+import com.xubin.infofeed.database.IconOpenHelper;
+
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 import android.widget.ListView;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
+import android.database.sqlite.SQLiteDatabase;
 
 import com.sina.weibo.sdk.auth.AuthInfo;
 import com.sina.weibo.sdk.auth.sso.SsoHandler;
@@ -29,6 +35,7 @@ public class WeiboHelper {
     */
     private static final String TAG = "WeiboHelper";
     private Activity activity;
+    //private SQLiteDatabase db = (new IconOpenHelper(activity)).getWritableDatabase();
     private ArrayList<RowStructure> rowList;
     private RowArrayAdapter<RowStructure> raa;
 
@@ -66,7 +73,7 @@ public class WeiboHelper {
                             }
 
                             for (Status s : statuses.statusList){
-                                rowList.add(new RowStructure(s.user.profile_image_url, s.user.name, s.created_at, s.text));
+                                rowList.add(new RowStructure(getIcon(s.user.profile_image_url), s.user.name, s.created_at, s.text));
                             }
 
                             if (null ==raa){
@@ -74,7 +81,6 @@ public class WeiboHelper {
                             } else{
                                 raa.addAll(rowList);
                             }
-
 
                             ListView weibolv = (ListView)activity.findViewById(R.id.list);
                             weibolv.setAdapter(raa);
@@ -110,4 +116,15 @@ public class WeiboHelper {
         }
     }
 
+    protected Bitmap getIcon(String icon_url){
+        Bitmap bm = null;
+        AsyncTask<String, Integer, Bitmap> mtask = new DownloadImageTask().execute(icon_url);
+        try {
+            bm = mtask.get(2000, TimeUnit.MILLISECONDS);
+        }catch (Exception e){
+            Log.i(TAG, e.getMessage());
+        }
+
+        return bm;
+    }
 }
