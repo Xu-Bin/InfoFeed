@@ -1,9 +1,11 @@
 package com.xubin.infofeed;
 
+import com.xubin.infofeed.cache.WeiboCache;
 import com.xubin.infofeed.database.IconOpenHelper;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.ListIterator;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -34,8 +36,10 @@ public class WeiboHelper {
      2. swift cache structure
     */
     private static final String TAG = "WeiboHelper";
+    private WeiboCache weibocache = WeiboCache.getInstance();
     private Activity activity;
-    //private SQLiteDatabase db = (new IconOpenHelper(activity)).getWritableDatabase();
+
+    private SQLiteDatabase db;
     private ArrayList<RowStructure> rowList;
     private RowArrayAdapter<RowStructure> raa;
 
@@ -43,6 +47,7 @@ public class WeiboHelper {
 
     private WeiboHelper(Activity activity){
         this.activity = activity;
+        this.db = (new IconOpenHelper(activity)).getWritableDatabase();
     }
 
     public static WeiboHelper getInstance(Activity activity){
@@ -68,18 +73,20 @@ public class WeiboHelper {
                         StatusList statuses = StatusList.parse(response);
                         if (statuses != null && statuses.total_number > 0) {
 
-                            if (null == rowList){
-                                rowList = new ArrayList<RowStructure>();
-                            }
 
-                            for (Status s : statuses.statusList){
-                                rowList.add(new RowStructure(getIcon(s.user.profile_image_url), s.user.name, s.created_at, s.text));
+                            rowList = new ArrayList<RowStructure>();
+
+                            ListIterator<Status> li = statuses.statusList.listIterator(statuses.statusList.size());
+                            while (li.hasPrevious()){
+                                Status status = li.previous();
+                                weibocache.add(0, new RowStructure(getIcon(status.user.profile_image_url), status.user.name, status.created_at, status.text));
                             }
 
                             if (null ==raa){
-                                raa = new RowArrayAdapter<RowStructure>(activity, rowList);
+                                raa = new RowArrayAdapter<RowStructure>(activity, weibocache);
                             } else{
-                                raa.addAll(rowList);
+                                raa.clear();
+                                raa.addAll(weibocache);
                             }
 
                             ListView weibolv = (ListView)activity.findViewById(R.id.list);
@@ -112,12 +119,13 @@ public class WeiboHelper {
 
         //if (wbAccessToken != null && wbAccessToken.isSessionValid()){
         if (wbAccessToken != null){
-            wbStatusesAPI.friendsTimeline(0L, 0L, 10, 1, false, 0, false, mListener);
+            wbStatusesAPI.friendsTimeline(0L, 0L, 50, 1, false, 0, false, mListener);
         }
     }
 
     protected Bitmap getIcon(String icon_url){
         Bitmap bm = null;
+
         AsyncTask<String, Integer, Bitmap> mtask = new DownloadImageTask().execute(icon_url);
         try {
             bm = mtask.get(2000, TimeUnit.MILLISECONDS);

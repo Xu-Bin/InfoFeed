@@ -47,24 +47,6 @@ public class RowArrayAdapter<T> extends ArrayAdapter<T> {
         publish_time.setText(rs.publish_time);
         content.setText(rs.content);
 
-
         return vi;
     }
-}
-
-
-    class RowStructure {
-        public Bitmap avatar;
-        public String author;
-        public String publish_time;
-        public String content;
-
-        public RowStructure(Bitmap avatar, String author, String publish_time, String content){
-            this.avatar = avatar;
-            this.author = author;
-            this.publish_time = publish_time;
-            this.content = content;
-    }
-
-
 }
