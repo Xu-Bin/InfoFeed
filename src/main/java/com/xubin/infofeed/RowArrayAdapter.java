@@ -14,17 +14,13 @@ import android.util.Log;
 
 public class RowArrayAdapter<T> extends ArrayAdapter<T> {
     private LayoutInflater inflater = null;
-    //private ArrayList<T> rowData;
+    
 
     public RowArrayAdapter(Context context, ArrayList<T> data){
         super(context, 0, data);
         inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    protected void setData(ArrayList<T> data){
-        //rowData = data;
-        this.addAll(data);
-    }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent){

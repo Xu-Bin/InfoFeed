@@ -8,4 +8,5 @@
 	<string name="feed_button">Feed</string>
 	<string name="conn_receiver_name">ConnStatusRecevier</string>
 	<string name="obtain_token_via_sso_all_in_one">SSO 授权（ALL IN ONE）</string>
+
 </resources>

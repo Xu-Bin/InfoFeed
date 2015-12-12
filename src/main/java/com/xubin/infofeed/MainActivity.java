@@ -2,6 +2,7 @@ package com.xubin.infofeed;
 
 import java.util.ArrayList;
 
+
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
+
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -48,6 +50,9 @@ public class MainActivity extends ActionBarActivity {
     private Oauth2AccessToken mAccessToken;
     private SsoHandler mSsoHandler;
 
+    private ArrayList<RowStructure> rowList;
+    private RowArrayAdapter<RowStructure> raa;
+
     // private static boolean wifiConnected = false;
     // private static boolean mobileConnected = false;
     ConnStatusChangeReceiver receiver = new ConnStatusChangeReceiver();
@@ -69,7 +74,7 @@ public class MainActivity extends ActionBarActivity {
         filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         this.registerReceiver(receiver, filter);
 
-        drawConnFragment();       
+        drawConnFragment();
 
     }
 
@@ -118,19 +123,20 @@ public class MainActivity extends ActionBarActivity {
 	@Override
 	protected void onPause(){
 		Log.i(TAG, "Entering onPause");
-		super.onResume();
+		super.onPause();
 	}
 
 	@Override
 	protected void onStop(){
 		Log.i(TAG, "Entering onStop");
-		super.onResume();
+		super.onStop();
+        finish();
 	}
 
 	@Override
 	protected void onDestroy(){
 		Log.i(TAG, "Entering onDestroy");
-		super.onResume();
+		super.onDestroy();
         this.unregisterReceiver(receiver);
 	}
 

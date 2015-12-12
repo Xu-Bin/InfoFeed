@@ -21,6 +21,12 @@ import com.sina.weibo.sdk.net.RequestListener;
 import android.app.Activity;
 
 public class WeiboHelper {
+
+    /* TODO:
+     0. add image into rows;
+     1. sort according to timestamp
+     2. swift cache structure
+    */
     private static final String TAG = "WeiboHelper";
     private Activity activity;
     private ArrayList<RowStructure> rowList;
@@ -33,10 +39,7 @@ public class WeiboHelper {
     }
 
     public static WeiboHelper getInstance(Activity activity){
-        if (null == weiboHelper){
-            weiboHelper = new WeiboHelper(activity);
-        }
-        return weiboHelper;
+        return new WeiboHelper(activity);
     }
 
     protected void weiboUpdate(){
@@ -62,27 +65,20 @@ public class WeiboHelper {
                                 rowList = new ArrayList<RowStructure>();
                             }
 
-                            ArrayList<String> al = new ArrayList<String>();
-
                             for (Status s : statuses.statusList){
                                 rowList.add(new RowStructure(s.user.profile_image_url, s.user.name, s.created_at, s.text));
-                                al.add(s.text);
                             }
 
                             if (null ==raa){
                                 raa = new RowArrayAdapter<RowStructure>(activity, rowList);
                             } else{
-                                raa.setData(rowList);
-                                raa.notifyDataSetChanged();
+                                raa.addAll(rowList);
                             }
 
 
                             ListView weibolv = (ListView)activity.findViewById(R.id.list);
-                            //ArrayAdapter<RowStructure> weiboAdapte = new ArrayAdapter<RowStructure> (context, R.layout.list_row, rowList);
+                            weibolv.setAdapter(raa);
 
-                            weibolv.setAdapter(new android.widget.ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, al));
-                            //activity.removeView(weibolv);
-                            //activity.setContentView(weibolv);
 
                             Toast.makeText(activity,
                                     "获取微博信息流成功, 条数: " + statuses.statusList.size(),
